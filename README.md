@@ -28,3 +28,66 @@ The scope of this project is to design and demonstrate an end-to-end, Keep It Si
 * **Machine Learning / AI:** 
   * Google MediaPipe (Local Face Detection for counting).
   * Google Gemini API (Multimodal Video Summarization and Code Review).
+## 4. Getting Started
+
+### Prerequisites
+* Python 3.10+ (3.11 recommended)
+* A [Google Gemini API key](https://aistudio.google.com/app/apikey)
+* A Firebase project with a **Realtime Database** and a service-account key (Firebase Console → Project settings → Service accounts → *Generate new private key*)
+
+### Installation
+```bash
+git clone https://github.com/shlomi56/I2SE_EXe2.git
+cd I2SE_EXe2
+python3 -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### Configuration
+Copy the example environment file and fill in your values:
+```bash
+cp .env.example .env
+```
+
+| Variable | Description |
+|---|---|
+| `GEMINI_API_KEY` | Google Gemini API key |
+| `GEMINI_MODEL` | Gemini model name (default: `gemini-2.5-flash`) |
+| `FIREBASE_DATABASE_URL` | e.g. `https://<project-id>-default-rtdb.firebaseio.com` |
+| `FIREBASE_CREDENTIALS_PATH` | Path to the service-account JSON (e.g. `./firebase-credentials.json`) |
+| `FIREBASE_CREDENTIALS_JSON` | Alternative to the path: the full JSON on one line (useful for cloud hosting) |
+| `LECTURER_PIN` | PIN that unlocks Lecturer mode |
+
+> `.env` and the credentials JSON are git-ignored. Never commit them.
+
+### Run
+```bash
+streamlit run app.py
+```
+Open http://localhost:8501. Choose **Student** or **Lecturer** in the sidebar (Lecturer requires the PIN).
+
+| Role | Available features |
+|---|---|
+| Lecturer | Attendance, Comments, Polls, Video Summary, HW Review |
+| Student | Comments, Polls, HW Review |
+
+### Using it from smartphones (class demo)
+Mobile browsers only allow camera access over **HTTPS**, so for the in-class demo either:
+* Deploy to [Streamlit Community Cloud](https://streamlit.io/cloud) and add the `.env` values as app secrets (use `FIREBASE_CREDENTIALS_JSON` instead of a file path), or
+* Expose the local server through an HTTPS tunnel, e.g. `ngrok http 8501`, and share the generated URL with students.
+
+### Project Structure
+```
+app.py                      # Entry point: sidebar navigation + Student/Lecturer PIN toggle
+services/
+  firebase_manager.py       # Firebase singleton + CloudPoolManager (comments, polls, code pool)
+  gemini_service.py         # Gemini: video/audio summary + comparative homework review
+features/
+  attendance.py             # F1: MediaPipe face count, bounding boxes, CSV export
+  comments.py               # F2: Live feed + Offline Q&A history
+  polls.py                  # F3: Poll creator, student voting, live bar chart
+  video_summary.py          # F4: Upload recording -> Markdown summary
+  hw_review.py              # F5: Anonymous Cloud Pool + peer-comparison review
+docs/                       # SoW, SRS, project summary, assignment brief
+```
