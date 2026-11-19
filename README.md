@@ -53,7 +53,7 @@ cp .env.example .env
 | Variable | Description |
 |---|---|
 | `GEMINI_API_KEY` | Google Gemini API key |
-| `GEMINI_MODEL` | Gemini model name (default: `gemini-2.5-flash`) |
+| `GEMINI_MODEL` | Gemini model name (default: `gemini-3.8-flash`) |
 | `FIREBASE_DATABASE_URL` | e.g. `https://<project-id>-default-rtdb.firebaseio.com` |
 | `FIREBASE_CREDENTIALS_PATH` | Path to the service-account JSON (e.g. `./firebase-credentials.json`) |
 | `FIREBASE_CREDENTIALS_JSON` | Alternative to the path: the full JSON on one line (useful for cloud hosting) |
