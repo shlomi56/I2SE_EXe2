@@ -1,0 +1,30 @@
+PROJECT SUMMARY: WEB-BASED TEACHING TOOL (Ex2)
+==============================================
+
+Overview
+--------
+This project is a centralized, "Keep It Simple, Stupid" (KISS) web application designed to replace cumbersome teaching tools. It is optimized for mobile browser use in a live classroom setting. The development approach utilizes "vibe coding" (using AI to compose the architecture) rather than heavy manual backend coding.
+
+Core Tech Stack
+---------------
+* Frontend & Routing: Streamlit (Python)
+* Database/State: Firebase Realtime Database
+* Computer Vision: Google MediaPipe
+* LLM API: Google Gemini 1.5 Flash / Pro
+
+Feature Implementation
+----------------------
+1. Automatic Attendance: 
+   The lecturer uses their smartphone via the web app to capture a photo of the class. The image is sent to the local server (the host machine) where Google MediaPipe processes it to count the number of detected faces. The system then generates a timestamped .csv file containing the total count, which the lecturer can download instantly.
+
+2. Real-Time & Offline Comments:
+   Students can submit anonymous questions or suggestions during the lecture through a simple text field. These submissions are sent to a NoSQL Firebase Realtime Database. The database streams the comments back to the lecturer's dashboard in real-time. Because data is stored in the cloud, users can also access an "Offline Q&A" tab after the lecture.
+
+3. On-the-Spot Polls:
+   The lecturer creates a quick multiple-choice poll on their dashboard. The state of this poll is updated in the database. When students navigate to the poll section on their phones, they can tap an option to cast their vote. The aggregated votes update dynamically on the lecturer's screen.
+
+4. ML Class Video Summary:
+   Lecturers can upload an audio or video recording (.mp4, .mp3) directly to the web app. The file, along with a tailored system prompt, is sent directly to the Google Gemini Multimodal API. Gemini natively parses the media and returns a structured markdown summary (Core Concepts, Q&A, Action Items) without needing a separate transcription step.
+
+5. LLM Homework Review (Anonymous Cloud Pool):
+   To receive peer-compared feedback on homework, a student pastes their raw code into a text area on the app. The backend pushes this code anonymously to a "submissions" node in Firebase. To provide comparative context, the system fetches a previous, anonymous submission from that same pool. Both code snippets are sent to the Gemini API, which generates a comprehensive review comparing the two approaches.
