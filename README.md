@@ -91,3 +91,38 @@ features/
   hw_review.py              # F5: Anonymous Cloud Pool + peer-comparison review
 docs/                       # SoW, SRS, project summary, assignment brief
 ```
+
+
+## Proofs & Feature Demos
+
+All demo recordings, exported outputs, and database snapshots are stored under the `proofs/` directory (adjust paths if stored elsewhere in the repository).
+
+### 1. Feature Demo Videos
+
+| # | Feature | Proof File | What Is Demonstrated |
+| :- | :--- | :--- | :--- |
+| 1 | **Automated Attendance** | [video_1.mov](proofs/video_1.mov) | Uploads a classroom photo (`p22.jpg`), detects **36 students** with visual bounding-box verification, logs the session (`Intro to SE - Lesson`), and exports the attendance log to CSV. |
+| 2 | **Comments & Q&A** | [video_2.mov](proofs/video_2.mov) | Student (`test1`) submits a live question (`"does this feature works?"`), which appears in the Live feed, the searchable Offline Q&A table (with CSV export), and the Lecturer view. |
+| 3 | **Live Polls** | [video_3.mov](proofs/video_3.mov) | Lecturer creates and publishes a 2-option poll (`"does this feature works?"` — `yes` / `no`), a Student votes `yes`, live results update in real time, and the Lecturer closes the poll. |
+| 4 | **Lecture Summary (Gemini)** | [video_4.mov](proofs/video_4.mov) | Lecturer uploads a lecture recording (`VIDEO-2026-11-19-18-05-13.mp4`), generates a structured summary (**Core Concepts**, **Q&A**, and **Action Items**), and downloads the summary file. |
+| 5 | **AI Homework Review** | [video_5.mov](proofs/video_5.mov) | Student uploads a submission (`Math Q.txt`), runs an AI review covering **Summary**, **Correctness**, **Code Quality**, **Complexity**, **Comparison with a Peer Approach**, and **Suggestions**, and downloads the review. |
+
+### 2. Firebase Realtime Database Snapshot
+
+Snapshot confirming live persistence of `comments`, `polls`, and `submissions` created during the demos:
+
+![Firebase Realtime Database Proof](proofs/firebase%20datebase.png)
+
+* **`comments`**: Stores author `test1`, text `"does this feature works?"`, and timestamp.
+* **`polls/items`**: Stores the `"does this feature works?"` poll with options, vote counts, and `closed: true`.
+* **`submissions`**: Stores the anonymous homework submission (`"Math problems : 1) 1+1 = 2 2) 2*2= 4 3) 3^2 = 9 "`, language `"Other"`).
+
+### 3. Exported Output Files
+
+* **Attendance CSV** — [attendance_20261119_1330.csv](proofs/attendance_20261119_1330.csv)
+  ```csv
+  timestamp,course,student_count
+  2026-11-19 13:30:23,Intro to SE - Lesson,36
+
+
+
