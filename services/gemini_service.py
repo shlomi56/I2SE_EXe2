@@ -29,22 +29,45 @@ Homework, deadlines, readings or follow-ups mentioned. If none, write "None ment
 
 Write in the same language the lecturer speaks. Do not invent content that is not in the recording."""
 
-REVIEW_PROMPT = """You are an experienced software engineering teaching assistant.
-Review the student's {language} submission below{peer_clause}.
+REVIEW_PROMPT = """You are an experienced, subject-agnostic teaching assistant.
+Review the student's homework submission below{peer_clause}.
+The student labelled it as: "{subject_hint}" (this is only a hint and may be "Other" or inaccurate).
+
+First, detect the subject and format of the submission yourself, for example: programming
+(source code), mathematics (proofs, derivations, calculations), theory / short-answer
+questions, or written work (essays, reports). Then review it using the criteria that fit
+that subject:
+- Programming: correctness, bugs and edge cases, readability, naming, structure and design,
+  and time/space complexity.
+- Mathematics: correctness of the final answers, validity and completeness of each step,
+  notation, and rigor of the justification.
+- Theory / short answers: accuracy of the concepts, completeness of each answer, and
+  precision of terminology.
+- Writing: thesis and argument, structure and flow, evidence and support, clarity, grammar.
+Only comment on code style, complexity or other programming concerns if the submission is
+actually code. Do not force code-oriented feedback onto non-code work.
 
 Respond in Markdown with these sections:
 
+## Detected Subject
+The subject and format you identified, in one sentence.
+
 ## Summary
-What the code does, in 2-3 sentences.
+What the submission does or argues, in 2-3 sentences.
 
 ## Correctness
-Bugs, edge cases and logic errors (quote the relevant lines).
+Errors, wrong answers, bugs, faulty logic or factual mistakes (quote the relevant parts).
+If everything is correct, say so.
 
-## Code Quality
-Readability, naming, structure, OOP/design principles.
+## Steps & Reasoning
+How well the work is developed and justified: the logical steps of a proof or calculation,
+the argument of an essay, or the algorithm/structure of code. Point out missing or
+unjustified steps.
 
-## Complexity
-Time and space complexity of the main logic.
+## Clarity & Presentation
+Readability and organization appropriate to the subject (e.g. notation and layout for math,
+structure and wording for writing, naming and code style for programming). For code, also
+note time and space complexity of the main logic.
 
 ## Comparison with a Peer Approach
 {comparison_instructions}
@@ -55,19 +78,26 @@ A prioritized, numbered list of concrete improvements.
 Be constructive and specific. Never reveal or guess the identity of any author.
 
 ### Student submission
-```{language_tag}
+```{fence_tag}
 {code}
 ```
 {peer_block}"""
 
 PEER_INSTRUCTIONS = (
-    "Compare the student's approach with the anonymous peer submission: design choices, "
-    "efficiency, readability, and what each could learn from the other. Use a short table if helpful."
+    "Compare the student's approach with the anonymous peer submission: method or design choices, "
+    "correctness, completeness, clarity (and efficiency, if it is code), and what each could learn "
+    "from the other. Use a short table if helpful."
 )
 NO_PEER_INSTRUCTIONS = (
     "No peer submission is available yet in the Cloud Pool. State this in one sentence and "
-    "instead describe a common alternative approach to the same problem."
+    "instead describe a common alternative approach to the same problem or question."
 )
+
+# Fence tags for programming languages; anything else is fenced as plain text.
+CODE_FENCE_TAGS = {
+    "python": "python", "java": "java", "c": "c", "c++": "cpp", "c#": "csharp",
+    "javascript": "javascript", "typescript": "typescript",
+}
 
 
 class GeminiConfigError(RuntimeError):
@@ -121,18 +151,19 @@ class GeminiService:
                 pass
 
     # ------------------------------------------------------------------ F5
-    def compare_homework(self, code: str, peer_code: Optional[str], language: str) -> str:
-        language_tag = language.lower().replace("+", "p").replace("#", "sharp")
+    def compare_homework(self, code: str, peer_code: Optional[str], subject: str) -> str:
+        """Review a homework submission of any subject; `subject` is the student's hint."""
+        fence_tag = CODE_FENCE_TAGS.get(subject.strip().lower(), "text")
         if peer_code:
             peer_clause = " and compare it with an anonymous peer submission for the same assignment"
-            peer_block = f"\n### Anonymous peer submission\n```{language_tag}\n{peer_code}\n```\n"
+            peer_block = f"\n### Anonymous peer submission\n```{fence_tag}\n{peer_code}\n```\n"
             comparison = PEER_INSTRUCTIONS
         else:
             peer_clause, peer_block, comparison = "", "", NO_PEER_INSTRUCTIONS
 
         prompt = REVIEW_PROMPT.format(
-            language=language,
-            language_tag=language_tag,
+            subject_hint=subject or "Other",
+            fence_tag=fence_tag,
             peer_clause=peer_clause,
             comparison_instructions=comparison,
             code=code,

@@ -1,7 +1,7 @@
 """F5 - Deep LLM homework review using an anonymous Firebase Cloud Pool for peer context.
 
-Flow (SRS REQ-5.1..5.4): paste/upload code -> push to /submissions -> fetch a prior
-anonymous peer submission -> Gemini comparative review."""
+Flow (SRS REQ-5.1..5.4): paste/upload a submission (code, math, theory or writing) ->
+push to /submissions -> fetch a prior anonymous peer submission -> Gemini comparative review."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -20,18 +20,22 @@ LANGUAGES = {
     "C#": "cs",
     "JavaScript": "js",
     "TypeScript": "ts",
+    "Math": "tex",
+    "Theory / short answers": "md",
+    "Writing / essay": "md",
     "Other": "txt",
 }
 HIGHLIGHT = {
     "Python": "python", "Java": "java", "C": "c", "C++": "cpp", "C#": "csharp",
-    "JavaScript": "javascript", "TypeScript": "typescript", "Other": "text",
-}
-UPLOAD_TYPES =sorted(set(LANGUAGES.values()) | {"h", "hpp", "txt"})
+    "JavaScript": "javascript", "TypeScript": "typescript",
+}  # anything not listed here (Math, Writing, Other, ...) is shown as plain text
+UPLOAD_TYPES = sorted(set(LANGUAGES.values()) | {"h", "hpp"})
+# .txt/.md map to several subjects, so uploading one keeps the subject already selected.
 EXT_TO_LANGUAGE = {ext: lang for lang, ext in LANGUAGES.items()}
 
 
 def _load_uploaded_file() -> None:
-    """Copy an uploaded source file into the text area (once per new file)."""
+    """Copy an uploaded text file into the text area (once per new file)."""
     uploaded = st.session_state.get("hw_upload")
     if uploaded is None:
         return
@@ -42,24 +46,33 @@ def _load_uploaded_file() -> None:
     ext = uploaded.name.rsplit(".", 1)[-1].lower()
     if ext in ("h", "hpp"):
         ext = "cpp"
-    st.session_state.hw_language = EXT_TO_LANGUAGE.get(ext, st.session_state.get("hw_language", "Python"))
+    if ext in ("txt", "md"):  # generic text: keep the subject the student already picked
+        return
+    st.session_state.hw_language = EXT_TO_LANGUAGE.get(ext, st.session_state.get("hw_language", "Other"))
 
 
 def render(role: str) -> None:
-    st.header("🧑‍💻 Homework Review")
+    st.header("📝 Homework Review")
     st.write(
-        "Paste or upload your code. It is stored **anonymously** in the class Cloud Pool, "
-        "and the AI compares it with another anonymous submission."
+        "Paste or upload your homework — code, math, theory answers or written work. "
+        "It is stored **anonymously** in the class Cloud Pool, and the AI detects the subject, "
+        "reviews it accordingly, and compares it with another anonymous submission."
     )
     st.session_state.setdefault("hw_code", "")
-    st.session_state.setdefault("hw_language", "Python")
+    st.session_state.setdefault("hw_language", "Other")
 
-    st.file_uploader("Upload a source file (optional)", type=UPLOAD_TYPES, key="hw_upload", on_change=_load_uploaded_file)
-    language = st.selectbox("Language", list(LANGUAGES), key="hw_language")
-    code = st.text_area("Your code", key="hw_code", height=300, placeholder="Paste your code here...")
+    st.file_uploader("Upload a text file (optional)", type=UPLOAD_TYPES, key="hw_upload", on_change=_load_uploaded_file)
+    language = st.selectbox(
+        "Subject / language", list(LANGUAGES), key="hw_language",
+        help="A hint only — the AI detects the subject itself. Pick 'Other' if unsure.",
+    )
+    code = st.text_area(
+        "Your submission", key="hw_code", height=300,
+        placeholder="Paste your homework here (code, solutions, answers or text)...",
+    )
 
     if len(code) > MAX_CODE_CHARS:
-        st.warning(f"Code is {len(code):,} characters; the limit is {MAX_CODE_CHARS:,}.")
+        st.warning(f"Submission is {len(code):,} characters; the limit is {MAX_CODE_CHARS:,}.")
 
     submit = st.button(
         "🔍 Submit for review", type="primary", use_container_width=True,
